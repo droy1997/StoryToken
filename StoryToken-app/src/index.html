@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StoryToken</title>
+  <link href='https://fonts.googleapis.com/css?family=Lobster|Open+Sans:400,400italic,300italic,300|Raleway:300,400,600' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="css/toastr.min.css">
+  <link rel="stylesheet" type="text/css" href="css/animate.css">
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+
+<body>
+  <div class="content">
+    <div class="container wow fadeInUp delay-03s">
+      <!-- heading goes here apparantly -->
+      <div class="row">      
+        <div class="logo text-center">
+		      <h2>ETH - StoryToken</h2>
+        </div>
+      </div>
+
+      <div class="text-center no-account">
+        <h2>No Account detected</h2>
+          <h3> Please connect to MetaMask(and reload probably)</h3>
+      </div>
+      
+      <!-- current_account span stores the account number -->
+      <div class="text-center" > 
+        <p><b>Account: </b><span id="current_account"></span></p>
+
+        <!-- This will show up when account is of author -->
+        <div class="author"  style="display: none;">
+          <h2> Author Page</h2>
+          <h2 class="subs-title text-center">Create Book</h2>
+          <label class="subs-title">
+            <b>Enter Book Name: </b>&nbsp;
+            <input type="text" class="book-input form-control" id="book-name" placeholder="Enter here"></input>
+              <br/>
+              <br>
+          </label>
+          <label class="subs-title">
+            <b>Enter Author: </b>&nbsp;
+            <input type="text" class="book-input form-control" id="book-author" placeholder="Enter here"></input>
+              <br/>
+              <br>
+          </label>
+          <label class="subs-title">
+            <b>Enter Book Publisher:   </b>&nbsp;
+            <input type="text" class="book-input form-control" id="book-publisher" placeholder="Enter here"></input>
+              <br/>
+              <br>
+          </label>
+          <label class="subs-title">
+            <b>Enter Year: </b>&nbsp;
+            <input type="text" class="book-input form-control" id="book-year" placeholder="Enter here"></input>
+              <br/>
+              <br>
+          </label>
+          <label class="subs-title">
+            <b>Enter Price: </b>&nbsp;
+            <input type="text" class="book-input form-control" id="book-price" placeholder="Enter here"></input>
+              <br/>
+              <br>
+          </label>
+          <center style="padding-top:25px"><button type="submit" id="create-book" class="btn btn-primary btn-action align-center">Mint Book</button></center>
+        </div>
+
+        <!-- This will show up when account is other than user -->
+        <div class="other-user"  style="display: none;">
+          <h2> Public Page</h2>
+          <label class="subs-title">
+            <b>Enter book Id: </b>&nbsp;
+            <input type="text" class="get-book form-control" id="token-id" placeholder="Enter here"></input>
+              <br/>
+              <br>
+          </label>
+          <center style="padding-top:25px"><button type="submit" id="get-book" class="btn btn-primary btn-action align-center">Get Book</button></center>
+          <p><b>Book Name: </b><span id="get-name"></span></p>
+          <p><b>Book Author: </b><span id="get-author"></span></p>
+          <p><b>Book Price: </b><span id="get-price"></span></p>
+        </div>
+
+        
+        
+
+        <br/>
+    </div>
+  </div>
+  
+  <script src="js/dist/jquery.min.js"></script>
+  <script src="js/dist/bootstrap.min.js"></script>
+  <script src="js/dist/jquery.countdown.min.js"></script>
+  <script src="js/dist/wow.js"></script>
+  <script src="js/dist/custom.js"></script>
+  <script src="js/dist/bootstrap.min.js"></script>
+  <script src="js/dist/toastr.min.js"></script>
+  <script src="js/dist/web3.min.js"></script>
+  <script src="js/dist/truffle-contract.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
