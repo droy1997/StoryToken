@@ -12,7 +12,7 @@ StoryToken Decentralized application
 * Navigate to contract folder and run command 'truffle migrate --reset'
 * Navigate to app folder
 * run 'npm install' to install dependencies
-* run 'npm run' and application should start running on localhost:3000
+* run 'npm start' and application should start running on localhost:3000
 
 ### Outstanding issues ###
 
