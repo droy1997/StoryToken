@@ -138,6 +138,8 @@ App = {
     $('#phase-notification-text').text(notificationText.text);
     toastr.info(notificationText.text, "", { "iconClass": 'toast-info notification' + String(notificationText.id) });
   }
+
+  
 };
 
 

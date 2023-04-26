@@ -6,11 +6,19 @@
 */
 
 body {
+    /* width: 100%;
+    height: 100vh;
+    background-size: cover;
+    background-position: center; */
 	line-height: 1.2;
-    height: 100%;
     background-color: #ebeff2;
-    color: #333 !important;
+    color: #ffffff !important;
 	font-family: 'Open Sans', sans-serif;
+    background-image: linear-gradient(
+        rgba(0, 0, 0, 0.70),
+        rgba(0, 0, 0, 0.70)
+      ),url('../img/book_fruit.jpeg');
+    
 }
 ol, ul {
 	list-style: none;
@@ -31,19 +39,118 @@ table {
 ***********************************/
 /**********************************
 ***********************************/
+.banner
+{
+    width: 100%;
+    height: 100%;
+    /* font-family: RubikPixels; */
+    background-size: cover;
+    background-position: center;
+  
+}
+@font-face{
+    font-family: RubikPixels;
+    src: url('../fonts/RubikPixels-Regular.ttf');
+}
+.navbar
+{
+    width: 100%;
+    margin: auto;
+    padding: 35px 0;
+    display: flex;
+    justify-content: space-between;
+}
+.navbar ul li{
+    list-style: none;
+    display: inline;
+    margin: 0 20px;
+    position: relative;
+}
+.navbar ul li a{
+    text-decoration: none;
+    color: #fff;
+    text-transform: uppercase;
+}
+.navbar ul li::after{
+    content: '';
+    height: 3px;
+    width: 0%;
+    background: #009688;
+    position: absolute;
+    left: 0;
+    bottom: -10px;
+    transition: 0.5s;
+}
+.navbar ul li:hover::after{
+    width: 100%;
+}
+button{
+    width: 200px;
+    padding: 15px 0;
+    text-align: center;
+    margin: 20px 10px;
+    border-radius: 25px;
+    font-weight: bold;
+    border: 2px solid #009688;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+button-style{
+    background: #009688;
+    height: 100%;
+    width: 0;
+    border-radius: 25px;
+    position: absolute;
+    left: 0;
+    bottom: 0; 
+    z-index: -1;
+    transition: 0.5s;
+}
+button:hover {
+    width: 100%;
+}
+button:hover{
+    border: none;
+}
 .content
 {
+    width: 100%;
+    position: absolute;
+    /* top: 50%; */
+    transform: translateY(-50);
+    text-align: center;
+    color: #fff;
 	margin-top: 0px;
+    background-size: cover;
 	/* color: #fff; */
+    
+}
+.author-content{
+    background-image: linear-gradient(
+        rgba(0, 0, 0, 0.70),
+        rgba(0, 0, 0, 0.70)
+      ),url('../img/book_tree.jpeg');
+}
+.content h1{
+    font-size: 70px;
+    margin-top: 80px;
+    font-family: RubikPixels;
+}
+.content p{
+    margin: 20px auto;
+    font-weight: 100;
+    line-height: 25px;
 }
 .logo img
 {
 	display: inline-block;
 }
-.logo h2
+.logo h1
 {
-	font-family: 'Lobster', cursive;
-	font-size: 34px;
+	font-size: 100px;
     padding-top: 40px;
 }
 
@@ -342,7 +449,7 @@ body{
         cursor: pointer;
       }
       li:hover{
-        background-color: rgb(100,100,100);
+        /* background-color: rgb(100,100,100); */
         color: white;
       }
       li:active{
