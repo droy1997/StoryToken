@@ -120,7 +120,7 @@ App = {
     });
   },
 
-  fetchBooks: function (bookId, explore) {
+  fetchBook: function (bookId, explore) {
     console.log("started get book", bookId);
     App.contracts.st.deployed().then(function (instance) {
       stInstance = instance;
@@ -197,9 +197,6 @@ App = {
             newElement.find("button").text("Set Not for Sale");
           }
         }
-        
-       
-
         booklist.append(newElement);
       }
     });
@@ -214,7 +211,7 @@ App = {
       if (result) {
         numTokens = result.toNumber();
         for(let i = 1; i <= numTokens; i++) {
-          App.fetchBooks(i, explore);
+          App.fetchBook(i, explore);
         }
       } else {
         console.log(err);

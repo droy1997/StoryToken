@@ -23,7 +23,7 @@ contract StoryToken is ERC721, Ownable {
     uint royaltyPercent;
 
     event BookCreated(uint256 tokenNum);
-    event returnBook(string title, string author, uint price);
+    // event returnBook(string title, string author, uint price);
     constructor(uint royalty) ERC721("StoryToken", "ST") {
         royaltyPercent = royalty;
     }
@@ -42,16 +42,6 @@ contract StoryToken is ERC721, Ownable {
         _books[tokenId] = Book(title, author, publisher, year, bookOwner, false, price);
         // return tokenId;
         emit BookCreated(tokenId);
-    }
-
-    function getBookInfo(uint256 tokenId) public returns (Book memory) {
-        require(_exists(tokenId), "Token does not exist");
-        // return _books[tokenId];
-        // Book memory book = _books[tokenId];
-        string memory title  = _books[tokenId].title;
-        string memory author  = _books[tokenId].author;
-        uint price =  _books[tokenId].price;
-        emit returnBook(title, author, price);
     }
 
     function transferBook(uint256 tokenId, address to) public {

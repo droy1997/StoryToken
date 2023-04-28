@@ -57,6 +57,12 @@ h6 {
   font-family: var(--font-primary);
 }
 
+.a-number {
+  color: rgba(252, 252, 252, 0.8);
+  /* font-size: 18px; */
+}
+
+
 /*--------------------------------------------------------------
 # Sections & Section Header
 --------------------------------------------------------------*/
@@ -647,7 +653,7 @@ section {
   padding: 12px 15px;
 }
 
-.get-started  button[type=submit] {
+.get-started  button{
   background: var(--color-primary);
   border: 0;
   padding: 10px 30px;
@@ -656,7 +662,7 @@ section {
   border-radius: 4px;
 }
 
-.get-started  button[type=submit] {
+.get-started  button {
   background: var(--color-primary);
   border: 0;
   padding: 10px 30px;
@@ -665,7 +671,7 @@ section {
   border-radius: 4px;
 }
 
-.get-started  button[type=submit]:hover {
+.get-started  button:hover {
   background: rgba(254, 185, 0, 0.8);
 }
 
