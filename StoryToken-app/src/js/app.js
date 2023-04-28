@@ -233,6 +233,7 @@ App = {
     }).then(function (result, err) {
       if (result) {
         console.log(result);
+        App.updateBooklist();
       } else {
         console.log(err);
         return nil;
@@ -250,6 +251,7 @@ App = {
     }).then(function (result, err) {
       if (result) {
         console.log(result);
+        App.updateBooklist();
       } else {
         console.log(err);
         return nil;
@@ -273,6 +275,7 @@ App = {
     }).then(function (result, err) {
       if (result) {
         console.log(result);
+        App.updateBooklist();
       } else {
         console.log(err);
         return nil;
@@ -299,6 +302,18 @@ App = {
       console.log(err);
       return nil;
     });
+  },
+
+  updateBooklist: function () {
+    $( "#book-list" ).load(window.location.href + " #book-list" );
+    if (document.getElementById('explore')) {
+      console.log("in explore page")
+      App.populateBooks(true);
+    }
+    else if (document.getElementById('owner')) {
+      console.log("in owner page")
+      App.populateBooks(false);
+    }
   },
 
 
