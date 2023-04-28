@@ -59,7 +59,7 @@ App = {
         console.log("in owner page")
         App.populateBooks(false);
       }
-      return App.bindEvents();
+      return 0;
     });
   },
 
@@ -74,11 +74,6 @@ App = {
         $(".create").css("display", "inline");
       }
     })
-  },
-
-  bindEvents: function () {
-    // Implemented 2 events for now
-    $(document).on('click', '#create-book', App.createBook);
   },
 
   createBook: function () {
