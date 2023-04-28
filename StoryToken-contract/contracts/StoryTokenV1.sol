@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract StoryToken is ERC721, Ownable {
     
-    uint256 private _tokenIdCounter = 0;
+    uint256 public _tokenIdCounter = 0;
     
     struct Book {
         string title;
@@ -19,7 +19,7 @@ contract StoryToken is ERC721, Ownable {
     }
     // Owner of Smart Contract is Author
     // bookOwner of book is owner of token ID
-    mapping (uint256 => Book) private _books;
+    mapping (uint256 => Book) public _books;
     uint royaltyPercent;
 
     event BookCreated(uint256 tokenNum);

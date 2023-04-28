@@ -12,15 +12,27 @@ App = {
   },
 
   initWeb3: function () {
-    // Is there is an injected web3 instance?
-    if (typeof web3 !== 'undefined') {
-      App.web3Provider = web3.currentProvider;
-    } else {
-      // If no injected web3 instance is detected, fallback to the TestRPC
+    // Modern dapp browsers...
+    if (window.ethereum) {
+      App.web3Provider = window.ethereum;
+      window.ethereum.request({ method: 'eth_requestAccounts' })
+        .then(function () {
+          // User has allowed account access to DApp...
+        })
+        .catch(function (error) {
+          // User has denied account access to DApp...
+          console.error("User denied account access to DApp");
+        });
+    }
+    // Legacy dapp browsers...
+    else if (window.web3) {
+      App.web3Provider = window.web3.currentProvider;
+    }
+    // If no injected web3 instance is detected, fallback to the TestRPC
+    else {
       App.web3Provider = new Web3.providers.HttpProvider(App.url);
     }
     web3 = new Web3(App.web3Provider);
-    ethereum.enable();
     App.populateAddress();
     return App.initContract();
   },
@@ -39,6 +51,14 @@ App = {
       console.log(App.currentAccount);
       $(".no-account").css("display", "none");
       App.getAuthor();
+      if (document.getElementById('explore')) {
+        console.log("in explore page")
+        App.populateBooks(true);
+      }
+      else if (document.getElementById('owner')) {
+        console.log("in owner page")
+        App.populateBooks(false);
+      }
       return App.bindEvents();
     });
   },
@@ -51,18 +71,14 @@ App = {
       console.log("Owner:");
       console.log(App.author);
       if(App.currentAccount == App.author) {
-        $(".author").css("display", "inline");
-      } else {
-        $(".other-user").css("display", "inline");
+        $(".create").css("display", "inline");
       }
-
     })
   },
 
   bindEvents: function () {
     // Implemented 2 events for now
     $(document).on('click', '#create-book', App.createBook);
-    $(document).on('click', '#get-book', App.getBook);
   },
 
   createBook: function () {
@@ -93,31 +109,6 @@ App = {
     });
   },
 
-  getBook: function () {
-    event.preventDefault();
-    var tokenid = $("#token-id").val();
-    console.log("started get book")
-    App.contracts.st.deployed().then(function (instance) {
-      stInstance = instance;
-      return stInstance.getBookInfo(parseInt(tokenid), {from: App.currentAccount });
-    }).then(function (result, err) {
-      if (result) {
-        console.log(result);
-        price = result.logs[0].args.price.toNumber();
-        price = web3.fromWei(price, 'ether');
-        jQuery('#get-name').text(result.logs[0].args.title);
-        jQuery('#get-author').text(result.logs[0].args.author);
-        jQuery('#get-price').text(price+ " ETH");
-      } else {
-        console.log(err)
-        toastr["error"]("Error!");
-      }
-    }).catch(function (err) {
-      console.log(err)
-      toastr["error"]("Error!");
-    });
-  },
-
   populateAddress: function () {
     new Web3(new Web3.providers.HttpProvider(App.url)).eth.getAccounts((err, accounts) => {
       jQuery.each(accounts, function (i) {
@@ -128,6 +119,191 @@ App = {
       });
     });
   },
+
+  fetchBooks: function (bookId, explore) {
+    console.log("started get book", bookId);
+    App.contracts.st.deployed().then(function (instance) {
+      stInstance = instance;
+      return stInstance._books(parseInt(bookId));
+    }).then(function (result, err) {
+      if (result) {
+        console.log(result);
+        var bookName = result[0];
+        var authName = result[1];
+        var pubName = result[2];
+        var year = result[3].toNumber();
+        var owner = result[4];
+        var sale = result[5];
+        var price = result[6].toNumber();
+        if(explore != true) {
+          console.log("owner page");
+          if(owner==App.currentAccount) {
+            console.log("owned");
+            App.bookToPage(bookId,bookName, authName, pubName, year, sale, price, explore);
+            return
+          }
+        } else {
+          if(owner!=App.currentAccount) {
+            App.bookToPage(bookId,bookName, authName, pubName, year, sale, price, explore);
+          }
+        }
+        
+      } else {
+        console.log(err)
+        toastr["error"]("Error!");
+      }
+    }).catch(function (err) {
+      console.log(err)
+      toastr["error"]("Error!");
+    });
+  },
+
+  bookToPage: function (bookId, name, author, publisher, year, sale, price, explore) {
+    const booklist = $('#book-list');
+    let elementTemplate = '';
+    $.ajax( {
+      url: 'book-item.html',
+      async: false,
+      success: function(data) {
+        elementTemplate = data;
+        const newElement = $(elementTemplate);
+        newElement.find('.post-date').text(year);
+        newElement.find('.post-title').text(name);
+        newElement.find('.book-auth').text(author);
+        newElement.find('.book-pub').text(publisher);
+        newElement.find('.book-pub').text(publisher);
+        if(explore==true) {
+          if(sale!= true) {
+            newElement.find('.description').text("This book is not for sale");
+            newElement.find("button").attr("style", "display:none;");
+            newElement.find("input").attr("style", "display:none;");
+          } else {
+            newElement.find('.description').text("Owner has set the price to "+ web3.fromWei(price, 'ether')+" ETH");
+            newElement.find("button").attr("onclick", "App.buyBook("+bookId+")");
+            newElement.find("button").text("Buy");
+            newElement.find("input").attr("id", "buy-price-"+bookId);
+          }
+        } else {
+          if(sale!= true) {
+            newElement.find('.description').text("Currently not set for sale");
+            newElement.find("button").attr("onclick", "App.setForSale("+bookId+")");
+            newElement.find("button").text("Set");
+            newElement.find("input").attr("id", "set-price-"+bookId);
+            newElement.find("input").attr("placeholder", "Set Price ETH");
+          } else {
+            newElement.find('.description').text("This is curently set for sale at "+ web3.fromWei(price, 'ether')+" ETH");
+            newElement.find("input").attr("style", "display:none;");
+            newElement.find("button").attr("onclick", "App.unsetForSale("+bookId+")");
+            newElement.find("button").text("Set Not for Sale");
+          }
+        }
+        
+       
+
+        booklist.append(newElement);
+      }
+    });
+  },
+
+  populateBooks: function (explore) {
+    console.log("started num tokens");
+    App.contracts.st.deployed().then(function (instance) {
+      stInstance = instance;
+      return stInstance._tokenIdCounter();
+    }).then(function (result, err) {
+      if (result) {
+        numTokens = result.toNumber();
+        for(let i = 1; i <= numTokens; i++) {
+          App.fetchBooks(i, explore);
+        }
+      } else {
+        console.log(err);
+        return nil;
+      }
+    }).catch(function (err) {
+      console.log(err);
+      return nil;
+    });
+  },
+
+  setForSale: function (tokenId) {
+    console.log("started set for sale");
+    price = $("#set-price-"+tokenId).val();
+    console.log(price)
+    App.contracts.st.deployed().then(function (instance) {
+      stInstance = instance;
+      return stInstance.setForSale(tokenId, true, web3.toWei(price,"ether"), {from: App.currentAccount });
+    }).then(function (result, err) {
+      if (result) {
+        console.log(result);
+      } else {
+        console.log(err);
+        return nil;
+      }
+    }).catch(function (err) {
+      console.log(err);
+      return nil;
+    });
+  },
+  unsetForSale: function (tokenId) {
+    console.log("started setfor sale");
+    App.contracts.st.deployed().then(function (instance) {
+      stInstance = instance;
+      return stInstance.setForSale(tokenId, false, web3.toWei(1,"ether"), {from: App.currentAccount });
+    }).then(function (result, err) {
+      if (result) {
+        console.log(result);
+      } else {
+        console.log(err);
+        return nil;
+      }
+    }).catch(function (err) {
+      console.log(err);
+      return nil;
+    });
+  },
+
+  buyBook: function (tokenId) {
+    console.log("started buy book");
+    var price = $("#buy-price-"+tokenId).val();
+    console.log("price");
+    console.log(price);
+
+
+    App.contracts.st.deployed().then(function (instance) {
+      stInstance = instance;
+      return stInstance.buyBook(tokenId, {value: web3.toWei(price, "ether"), from: App.currentAccount });
+    }).then(function (result, err) {
+      if (result) {
+        console.log(result);
+      } else {
+        console.log(err);
+        return nil;
+      }
+    }).catch(function (err) {
+      console.log(err);
+      return nil;
+    });
+  },
+
+  withdrawRoyalty: function () {
+    console.log("started withdraw");
+    App.contracts.st.deployed().then(function (instance) {
+      stInstance = instance;
+      return stInstance.withdrawRoyalty({from: App.currentAccount });
+    }).then(function (result, err) {
+      if (result) {
+        console.log(result);
+      } else {
+        console.log(err);
+        return nil;
+      }
+    }).catch(function (err) {
+      console.log(err);
+      return nil;
+    });
+  },
+
 
 
 
