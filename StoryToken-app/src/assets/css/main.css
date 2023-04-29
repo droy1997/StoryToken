@@ -409,6 +409,13 @@ section {
   }
 }
 
+.bi-person-fill {
+  color: rgb(203, 203, 203); /* change the color */
+  font-size: 24px; /* change the font size */
+  margin-right: 10px; /* add some margin */
+  /* add any other styles you want */
+}
+
 @media (min-width: 1280px) and (max-width: 1366px) {
   .navbar .dropdown .dropdown ul {
     left: -90%;
@@ -2729,4 +2736,49 @@ section {
 
 .footer .footer-legal .credits a {
   color: var(--color-primary);
+}
+
+
+/*--------------------------------------------------------------
+# Toaster
+--------------------------------------------------------------*/
+
+#toast-container>div{
+  width: auto;
+  height: 100px;
+  box-shadow: none;
+  opacity: 1;
+}
+
+#toast-container>div:hover{
+  box-shadow: none;
+}
+
+.toast-message{
+  font-size: 20px;
+  letter-spacing: 0.7px;
+  font-weight: 600;
+  margin-top: 22px;
+  margin-left: 15px;
+  margin-right: 25px;
+}
+
+.notification0 {
+  background-color: #1b75bb;
+}
+
+.notification1 {
+  background-color: #f39c11;
+}
+
+.notification2 {
+  background-color: #d25400;
+}
+
+.notification3 {
+  background-color: #17a086;
+}
+
+.toast-error{
+  background-color: #c1392d;
 }

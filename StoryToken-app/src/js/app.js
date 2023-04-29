@@ -92,8 +92,8 @@ App = {
     }).then(function (result, err) {
       if (result) {
         console.log(result);
-        tokenid = result.logs[0].args.tokenId.toNumber()
-        toastr.info('created a book! Id: ' + tokenid, { "iconClass": 'toast-info notification3' });
+        tokenid = result.logs[0].args.tokenId.toNumber();
+        toastr.info('Created a Book! Id: ' + tokenid, { "iconClass": 'toast-info notification3' });
       } else {
         console.log(err)
         toastr["error"]("Error!");
@@ -168,28 +168,32 @@ App = {
         newElement.find('.book-pub').text(publisher);
         newElement.find('.book-pub').text(publisher);
         if(explore==true) {
+
           if(sale!= true) {
             newElement.find('.description').text("This book is not for sale");
-            newElement.find("button").attr("style", "display:none;");
-            newElement.find("input").attr("style", "display:none;");
+            newElement.find("#book-set").attr("style", "display:none;");
+            newElement.find("#buy-price").attr("style", "display:none;");
           } else {
             newElement.find('.description').text("Owner has set the price to "+ web3.fromWei(price, 'ether')+" ETH");
-            newElement.find("button").attr("onclick", "App.buyBook("+bookId+")");
-            newElement.find("button").text("Buy");
-            newElement.find("input").attr("id", "buy-price-"+bookId);
+            newElement.find("#book-set").attr("onclick", "App.buyBook("+bookId+")");
+            newElement.find("#book-set").text("Buy");
+            newElement.find("#buy-price").attr("id", "buy-price-"+bookId);
           }
         } else {
+          newElement.find('.transfer').attr("style", "display:block;");
+          newElement.find("#book-transfer").attr("onclick", "App.transferBook("+bookId+")");;
+          newElement.find("#to-addr").attr("id", "to-addr-"+bookId);
           if(sale!= true) {
             newElement.find('.description').text("Currently not set for sale");
-            newElement.find("button").attr("onclick", "App.setForSale("+bookId+")");
-            newElement.find("button").text("Set");
-            newElement.find("input").attr("id", "set-price-"+bookId);
-            newElement.find("input").attr("placeholder", "Set Price ETH");
+            newElement.find("#book-set").attr("onclick", "App.setForSale("+bookId+")");
+            newElement.find("#book-set").text("Set");
+            newElement.find("#buy-price").attr("id", "set-price-"+bookId);
+            newElement.find("#buy-price").attr("placeholder", "Set Price ETH");
           } else {
             newElement.find('.description').text("This is curently set for sale at "+ web3.fromWei(price, 'ether')+" ETH");
-            newElement.find("input").attr("style", "display:none;");
-            newElement.find("button").attr("onclick", "App.unsetForSale("+bookId+")");
-            newElement.find("button").text("Set Not for Sale");
+            newElement.find("#buy-price").attr("style", "display:none;");
+            newElement.find("#book-set").attr("onclick", "App.unsetForSale("+bookId+")");
+            newElement.find("#book-set").text("Set Not for Sale");
           }
         }
         booklist.append(newElement);
@@ -229,6 +233,7 @@ App = {
       if (result) {
         console.log(result);
         App.updateBooklist();
+        toastr.info('Book is set for Sale', { "iconClass": 'toast-info notification3' });
       } else {
         console.log(err);
         return nil;
@@ -247,6 +252,7 @@ App = {
       if (result) {
         console.log(result);
         App.updateBooklist();
+        toastr.info('Book is unset for Sale', { "iconClass": 'toast-info notification3' });
       } else {
         console.log(err);
         return nil;
@@ -271,6 +277,7 @@ App = {
       if (result) {
         console.log(result);
         App.updateBooklist();
+        toastr.info('Book bought Successfully! ID: '+tokenId, { "iconClass": 'toast-info notification3' });
       } else {
         console.log(err);
         return nil;
@@ -289,6 +296,31 @@ App = {
     }).then(function (result, err) {
       if (result) {
         console.log(result);
+        returns = result.logs[0].args.tokenNum.toNumber();
+        toastr.info(web3.fromWei(returns, "ether") +' ETH credited to Author Account', { "iconClass": 'toast-info notification3' });
+      } else {
+        console.log(err);
+        return nil;
+      }
+    }).catch(function (err) {
+      console.log(err);
+      return nil;
+    });
+  },
+
+  transferBook: function (tokenId) {
+    console.log("started transfer");
+    address = $("#to-addr-"+tokenId).val();
+    console.log(address);
+    console.log(tokenId);
+    App.contracts.st.deployed().then(function (instance) {
+      stInstance = instance;
+      return stInstance.transferBook(tokenId, address, {from: App.currentAccount });
+    }).then(function (result, err) {
+      if (result) {
+        console.log(result);
+        App.updateBooklist();
+        toastr.info('Book is transferred to '+address, { "iconClass": 'toast-info notification3' });
       } else {
         console.log(err);
         return nil;

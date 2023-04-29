@@ -23,6 +23,7 @@ contract StoryToken is ERC721, Ownable {
     uint royaltyPercent;
 
     event BookCreated(uint256 tokenNum);
+    event RoyaltyWithdrawn(uint256 tokenNum);
     // event returnBook(string title, string author, uint price);
     constructor(uint royalty) ERC721("StoryToken", "ST") {
         royaltyPercent = royalty;
@@ -34,7 +35,7 @@ contract StoryToken is ERC721, Ownable {
         string memory publisher,
         uint256 year,
         uint price
-    ) public onlyOwner returns (uint256) {
+    ) public onlyOwner {
         _tokenIdCounter += 1;
         uint256 tokenId = _tokenIdCounter;
         address bookOwner = _msgSender();
@@ -46,7 +47,7 @@ contract StoryToken is ERC721, Ownable {
 
     function transferBook(uint256 tokenId, address to) public {
         require(_exists(tokenId), "Token does not exist");
-        require(getApproved(tokenId)== _msgSender(), "Sender not approved to transfer");
+        require(ownerOf(tokenId)== _msgSender(), "Sender not approved to transfer");
         _transfer(_msgSender(), to, tokenId);
         _books[tokenId].bookOwner = to;
     }
@@ -75,6 +76,7 @@ contract StoryToken is ERC721, Ownable {
     }
 
     function withdrawRoyalty() public onlyOwner {
+        emit RoyaltyWithdrawn(address(this).balance);
         payable(owner()).transfer(address(this).balance);
     }
 }

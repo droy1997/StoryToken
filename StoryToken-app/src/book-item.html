@@ -16,14 +16,19 @@
           </div>
           <span class="px-3 text-black-50">/</span>
           <div class="d-flex align-items-center">
-            <i class="bi bi-folder2"></i> <span class="ps-2 book-pub" id="book-pub"></span>
+            <i class="bi bi-bookmarks"></i> <span class="ps-2 book-pub" id="book-pub"></span>
           </div>
         </div>
         <hr>
         <p class="description"></p>
-        <div class="container" style="display:flex;">
+        <div class="container" style="display:flex; padding:10px">
           <input type="text" class="form-control" name="price" id="buy-price" style="padding-right: 10px; width:70%;"  placeholder="ETH" required>
           <button type="submit" id="book-set" class="btn btn-primary btn-action align-center" onclick="">Buy</button>
+        </div>
+        <div class="container transfer" style="display:none;">
+          
+          <button type="submit" id="book-transfer" class="btn btn-primary btn-action align-center" style="width: 100%;" onclick="">Transfer to</button>
+          <input type="text" class="form-control" name="to-addr" id="to-addr" placeholder="Address" required>
         </div>
       </div>
 
