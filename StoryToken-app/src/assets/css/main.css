@@ -2782,3 +2782,9 @@ section {
 .toast-error{
   background-color: #c1392d;
 }
+
+.b-item {
+  border: 1px solid rgb(219, 219, 219); /* sets a solid black border with a width of 1 pixel */
+  padding: 10px; 
+  margin: 10px;
+}

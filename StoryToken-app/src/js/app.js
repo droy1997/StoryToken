@@ -88,11 +88,12 @@ App = {
 
     App.contracts.st.deployed().then(function (instance) {
       stInstance = instance;
-      return stInstance.createBook(bookName, bookAuthor, bookPublisher, parseInt(bookYear), web3.toWei(bookPrice,"ether"), {from: App.currentAccount }); // added from parameter
+      return stInstance.createBook(web3.toWei(bookPrice,"ether"), {from: App.currentAccount }); // added from parameter
     }).then(function (result, err) {
       if (result) {
         console.log(result);
         tokenid = result.logs[0].args.tokenId.toNumber();
+        addToDB(tokenid, bookName, bookAuthor, bookPublisher, bookYear);
         toastr.info('Created a Book! Id: ' + tokenid, { "iconClass": 'toast-info notification3' });
       } else {
         console.log(err)
@@ -115,7 +116,7 @@ App = {
     });
   },
 
-  fetchBook: function (bookId, explore) {
+  fetchBook: function (bookId, explore, bookDetails) {
     console.log("started get book", bookId);
     App.contracts.st.deployed().then(function (instance) {
       stInstance = instance;
@@ -123,13 +124,13 @@ App = {
     }).then(function (result, err) {
       if (result) {
         console.log(result);
-        var bookName = result[0];
-        var authName = result[1];
-        var pubName = result[2];
-        var year = result[3].toNumber();
-        var owner = result[4];
-        var sale = result[5];
-        var price = result[6].toNumber();
+        var bookName = bookDetails["book_name"];
+        var authName = bookDetails["book_author"];
+        var pubName = bookDetails["book_publisher"];
+        var year = bookDetails["book_year"];
+        var owner = result[0];
+        var sale = result[1];
+        var price = result[2].toNumber();
         if(explore != true) {
           console.log("owner page");
           if(owner==App.currentAccount) {
@@ -209,8 +210,14 @@ App = {
     }).then(function (result, err) {
       if (result) {
         numTokens = result.toNumber();
-        for(let i = 1; i <= numTokens; i++) {
-          App.fetchBook(i, explore);
+        if(numTokens > 0) {
+          getAllData().then(function(data) {
+            for(let i = 1; i <= numTokens; i++) {
+              App.fetchBook(i, explore, data[i]);
+            }
+          }).catch(function(error) {
+            console.error(error);
+          });
         }
       } else {
         console.log(err);

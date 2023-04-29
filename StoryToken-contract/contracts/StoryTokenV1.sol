@@ -9,10 +9,6 @@ contract StoryToken is ERC721, Ownable {
     uint256 public _tokenIdCounter = 0;
     
     struct Book {
-        string title;
-        string author;
-        string publisher;
-        uint256 year;
         address bookOwner;
         bool forSale;
         uint price;
@@ -30,17 +26,13 @@ contract StoryToken is ERC721, Ownable {
     }
 
     function createBook(
-        string memory title,
-        string memory author,
-        string memory publisher,
-        uint256 year,
         uint price
     ) public onlyOwner {
         _tokenIdCounter += 1;
         uint256 tokenId = _tokenIdCounter;
         address bookOwner = _msgSender();
         _safeMint(bookOwner, tokenId);
-        _books[tokenId] = Book(title, author, publisher, year, bookOwner, false, price);
+        _books[tokenId] = Book(bookOwner, false, price);
         // return tokenId;
         emit BookCreated(tokenId);
     }
