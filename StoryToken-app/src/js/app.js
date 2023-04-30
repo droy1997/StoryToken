@@ -142,7 +142,7 @@ App = {
     });
   },
 
-  fetchBook: function (bookId, explore, bookDetails) {
+  fetchBook: function (bookId, explore, bookDetails, tokenNum) {
     console.log("started get book", bookId);
     App.contracts.st.deployed().then(function (instance) {
       stInstance = instance;
@@ -162,12 +162,12 @@ App = {
           console.log("owner page");
           if(owner==App.currentAccount) {
             console.log("owned");
-            App.bookToPage(bookId,bookName, authName, pubName, year, sale, price, explore, image);
+            App.bookToPage(bookId,bookName, authName, pubName, year, sale, price, explore, image, tokenNum);
             return
           }
         } else {
           if(owner!=App.currentAccount) {
-            App.bookToPage(bookId,bookName, authName, pubName, year, sale, price, explore, image);
+            App.bookToPage(bookId,bookName, authName, pubName, year, sale, price, explore, image, tokenNum);
           }
         }
         
@@ -181,7 +181,7 @@ App = {
     });
   },
 
-  bookToPage: function (bookId, name, author, publisher, year, sale, price, explore, image) {
+  bookToPage: function (bookId, name, author, publisher, year, sale, price, explore, image, tokenNum) {
     const booklist = $('#book-list');
     let elementTemplate = '';
     $.ajax( {
@@ -191,6 +191,7 @@ App = {
         elementTemplate = data;
         const newElement = $(elementTemplate);
         newElement.find('img').attr("src", image);
+        newElement.find('.token-num').text("#"+tokenNum);
         newElement.find('.post-date').text(year);
         newElement.find('.post-title').text(name);
         newElement.find('.book-auth').text(author);
@@ -241,7 +242,7 @@ App = {
         if(numTokens > 0) {
           getAllData().then(function(data) {
             for(let i = 1; i <= numTokens; i++) {
-              App.fetchBook(i, explore, data[i]);
+              App.fetchBook(i, explore, data[i], i);
             }
           }).catch(function(error) {
             console.error(error);
