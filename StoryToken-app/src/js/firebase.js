@@ -23,11 +23,12 @@ const firebaseConfig = {
     });
   }
 
-  function addToDB(tokenId, book_name, book_author, book_publisher, book_year) {
+  function addToDB(tokenId, book_name, book_author, book_publisher, book_year, image_path) {
     storyTokenDB.child(tokenId).set({   //change it to push
         book_name: book_name,
         book_author: book_author,
         book_publisher: book_publisher,
-        book_year: book_year
+        book_year: book_year,
+        book_image: image_path
     });;
   }

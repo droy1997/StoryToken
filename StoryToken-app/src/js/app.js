@@ -93,8 +93,34 @@ App = {
       if (result) {
         console.log(result);
         tokenid = result.logs[0].args.tokenId.toNumber();
-        addToDB(tokenid, bookName, bookAuthor, bookPublisher, bookYear);
-        toastr.info('Created a Book! Id: ' + tokenid, { "iconClass": 'toast-info notification3' });
+        const fileInput = document.getElementById('book-image');
+        imgPath = "assets/img/book.png"
+        const file  = fileInput.files[0]
+        if(file != null) {
+          const formData = new FormData();
+          formData.append('file', file);
+          fetch('/upload', {
+            method: 'POST',
+            body: formData
+          })
+            .then(response => {
+              if (response.ok) {
+                imgPath = "uploads/"+ file.name;
+              }
+              addToDB(tokenid, bookName, bookAuthor, bookPublisher, bookYear, imgPath);
+              toastr.info('Created a Book! Id: ' + tokenid, { "iconClass": 'toast-info notification3' });
+            })
+            .catch(error => {
+              addToDB(tokenid, bookName, bookAuthor, bookPublisher, bookYear, imgPath);
+              toastr.info('Created a Book! Id: ' + tokenid, { "iconClass": 'toast-info notification3' });
+            });
+        } else {
+          addToDB(tokenid, bookName, bookAuthor, bookPublisher, bookYear, imgPath);
+          toastr.info('Created a Book! Id: ' + tokenid, { "iconClass": 'toast-info notification3' });
+        }
+        
+        // addToDB(tokenid, bookName, bookAuthor, bookPublisher, bookYear);
+        // toastr.info('Created a Book! Id: ' + tokenid, { "iconClass": 'toast-info notification3' });
       } else {
         console.log(err)
         toastr["error"]("Error!");
@@ -128,6 +154,7 @@ App = {
         var authName = bookDetails["book_author"];
         var pubName = bookDetails["book_publisher"];
         var year = bookDetails["book_year"];
+        var image = bookDetails["book_image"]
         var owner = result[0];
         var sale = result[1];
         var price = result[2].toNumber();
@@ -135,12 +162,12 @@ App = {
           console.log("owner page");
           if(owner==App.currentAccount) {
             console.log("owned");
-            App.bookToPage(bookId,bookName, authName, pubName, year, sale, price, explore);
+            App.bookToPage(bookId,bookName, authName, pubName, year, sale, price, explore, image);
             return
           }
         } else {
           if(owner!=App.currentAccount) {
-            App.bookToPage(bookId,bookName, authName, pubName, year, sale, price, explore);
+            App.bookToPage(bookId,bookName, authName, pubName, year, sale, price, explore, image);
           }
         }
         
@@ -154,7 +181,7 @@ App = {
     });
   },
 
-  bookToPage: function (bookId, name, author, publisher, year, sale, price, explore) {
+  bookToPage: function (bookId, name, author, publisher, year, sale, price, explore, image) {
     const booklist = $('#book-list');
     let elementTemplate = '';
     $.ajax( {
@@ -163,6 +190,7 @@ App = {
       success: function(data) {
         elementTemplate = data;
         const newElement = $(elementTemplate);
+        newElement.find('img').attr("src", image);
         newElement.find('.post-date').text(year);
         newElement.find('.post-title').text(name);
         newElement.find('.book-auth').text(author);
