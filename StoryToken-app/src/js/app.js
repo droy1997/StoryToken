@@ -331,7 +331,7 @@ App = {
     }).then(function (result, err) {
       if (result) {
         console.log(result);
-        returns = result.logs[0].args.tokenNum.toNumber();
+        returns = result.logs[0].args.royalty.toNumber();
         toastr.info(web3.fromWei(returns, "ether") +' ETH credited to Author Account', { "iconClass": 'toast-info notification3' });
       } else {
         console.log(err);
