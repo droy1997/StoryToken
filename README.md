@@ -4,7 +4,7 @@ StoryToken Decentralized application
 
 
 * Authors can mint books and set them for sale
-* 0.0.1 (Beta)
+* 1.0.0
 
 ### How do I get set up? ###
 
@@ -14,7 +14,3 @@ StoryToken Decentralized application
 * run 'npm install' to install dependencies
 * run 'npm start' and application should start running on localhost:3000
 
-### Outstanding issues ###
-
-* Page not properly updated on account change
-* More to follow
