@@ -8,9 +8,15 @@ StoryToken Decentralized application
 
 ### How do I get set up? ###
 
-* Make sure ganache is up and running on local network
-* Navigate to contract folder and run command 'truffle migrate --reset'
-* Navigate to app folder
-* run 'npm install' to install dependencies
-* run 'npm start' and application should start running on localhost:3000
+* Extract the StoryToken.zip.
+* Make sure Ganache is working and connected to Metamask wallet.
+* Navigate to StoryToken-contract directory through terminal.
+* Execute truffle migrate --reset
+* If the above line fails with the following error: import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+we need to npm install ERC721 Through this command : npm install @openzeppelin/contracts
+
+* Once the smart contract is deployed, navigate to StoryToken-app directory through terminal (../StoryToken-app)
+* Run npm install
+* Run npm start
+* This should start our application on localhost:3000
 
