@@ -6,7 +6,6 @@ const fs = require('fs');
 const app = express();
 
 app.use(express.static('src'));
-app.use(express.static('../StoryToken-contract/build/contracts'));
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
