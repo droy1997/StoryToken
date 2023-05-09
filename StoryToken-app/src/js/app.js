@@ -1,9 +1,11 @@
 App = {
   web3Provider: null,
   contracts: {},
+  address: "0xdc91b2fF50d29Db0ee3C86Fa5B626070a5b1FA54",
   names: new Array(),
   url: 'http://127.0.0.1:7545',
   author:null,
+  currentAccount:null,
   // network_id: 5777,
 
   init: function () {
@@ -12,87 +14,63 @@ App = {
   },
 
   initWeb3: function () {
-    // Modern dapp browsers...
-    if (window.ethereum) {
-      App.web3Provider = window.ethereum;
-      window.ethereum.request({ method: 'eth_requestAccounts' })
-        .then(function () {
-          // User has allowed account access to DApp...
-        })
-        .catch(function (error) {
-          // User has denied account access to DApp...
-          console.error("User denied account access to DApp");
-        });
+    if (typeof web3 !== "undefined") {
+      // console.log(Web3.givenProvider);
+      App.web3 = new Web3(Web3.givenProvider);
+    } else {
+      App.web3 = new Web3(App.url);
     }
-    // Legacy dapp browsers...
-    else if (window.web3) {
-      App.web3Provider = window.web3.currentProvider;
-    }
-    // If no injected web3 instance is detected, fallback to the TestRPC
-    else {
-      App.web3Provider = new Web3.providers.HttpProvider(App.url);
-    }
-    web3 = new Web3(App.web3Provider);
-    App.populateAddress();
+    ethereum.request({ method: "eth_requestAccounts" });
+
     return App.initContract();
   },
 
   initContract: function () {
-    $.getJSON('StoryToken.json', function (data) {
-      // Get the necessary contract artifact file and instantiate it with truffle-contract
-      var storyTokenArtifact = data;
-      App.contracts.st = TruffleContract(storyTokenArtifact);
-      App.contracts.mycontract = data;
-      // Set the provider for our contract
-      App.contracts.st.setProvider(App.web3Provider);
-      App.currentAccount = web3.eth.coinbase;
-      jQuery('#current_account').text(App.currentAccount);
-      console.log("Current account");
-      console.log(App.currentAccount);
-      $(".no-account").css("display", "none");
-      App.getAuthor();
-      if (document.getElementById('explore')) {
-        console.log("in explore page")
-        App.populateBooks(true);
+    App.contracts.st = new App.web3.eth.Contract(App.abi, App.address, {});
+    return App.populateAddress();;
+  },
+
+  getAuthor: function () {
+    App.contracts.st.methods.owner().call((error, result) => {
+      if (error) {
+        console.error(error);
+      } else {
+        App.author = result;
+        console.log("Owner:");
+        console.log(App.author);
+        if(App.currentAccount == App.author) {
+          $(".create").css("display", "inline");
+        }
       }
-      else if (document.getElementById('owner')) {
-        console.log("in owner page")
-        App.populateBooks(false);
-      }
-      return 0;
     });
   },
 
-  getAuthor: function() {
-    App.contracts.st.deployed().then(function(instance) {
-      return instance.owner();
-    }).then(function(result) {
-      App.author = result;
-      console.log("Owner:");
-      console.log(App.author);
-      if(App.currentAccount == App.author) {
-        $(".create").css("display", "inline");
-      }
-    })
-  },
-
   createBook: function () {
-    event.preventDefault();
     console.log("started create book")
     var bookName = $("#book-name").val();
     var bookAuthor = $("#book-author").val();
     var bookPublisher = $("#book-publisher").val(); 
     var bookYear = $("#book-year").val();
     var bookPrice = $("#book-price").val();
-    console.log("to ether",web3.toWei(bookPrice,"ether") )
+    console.log("to ether",App.web3.utils.toWei(bookPrice,"ether") )
 
-    App.contracts.st.deployed().then(function (instance) {
-      stInstance = instance;
-      return stInstance.createBook(web3.toWei(bookPrice,"ether"), {from: App.currentAccount }); // added from parameter
-    }).then(function (result, err) {
-      if (result) {
+    var option = { from: App.currentAccount };
+    App.contracts.st.methods.createBook(App.web3.utils.toWei(bookPrice,"ether")).send(option, (error, result) => {
+      if (error) {
+        console.error(error);
+      } else {
         console.log(result);
-        tokenid = result.logs[0].args.tokenId.toNumber();
+      }
+    });
+    
+    // Wait for event
+    App.contracts.st.events.BookCreated({ fromBlock: 0 }, (error, event) => {
+      if (error) {
+        console.error(error);
+        toastr["error"]("Error!");
+      } else {
+        console.log(event.returnValues.tokenNum);
+        tokenid = event.returnValues.tokenNum;
         const fileInput = document.getElementById('book-image');
         imgPath = "assets/img/book.png"
         const file  = fileInput.files[0]
@@ -102,8 +80,7 @@ App = {
           fetch('/upload', {
             method: 'POST',
             body: formData
-          })
-            .then(response => {
+          }).then(response => {
               if (response.ok) {
                 imgPath = "uploads/"+ file.name;
               }
@@ -114,41 +91,41 @@ App = {
               addToDB(tokenid, bookName, bookAuthor, bookPublisher, bookYear, imgPath);
               toastr.info('Created a Book! Id: ' + tokenid, { "iconClass": 'toast-info notification3' });
             });
-        } else {
-          addToDB(tokenid, bookName, bookAuthor, bookPublisher, bookYear, imgPath);
-          toastr.info('Created a Book! Id: ' + tokenid, { "iconClass": 'toast-info notification3' });
-        }
-        
-        // addToDB(tokenid, bookName, bookAuthor, bookPublisher, bookYear);
-        // toastr.info('Created a Book! Id: ' + tokenid, { "iconClass": 'toast-info notification3' });
-      } else {
-        console.log(err)
-        toastr["error"]("Error!");
+          } else {
+            addToDB(tokenid, bookName, bookAuthor, bookPublisher, bookYear, imgPath);
+            toastr.info('Created a Book! Id: ' + tokenid, { "iconClass": 'toast-info notification3' });
+          }
       }
-    }).catch(function (err) {
-      console.log(err)
-      toastr["error"]("Error!");
     });
   },
 
-  populateAddress: function () {
-    new Web3(new Web3.providers.HttpProvider(App.url)).eth.getAccounts((err, accounts) => {
-      jQuery.each(accounts, function (i) {
-        if (web3.eth.coinbase != accounts[i]) {
-          var optionElement = '<option value="' + accounts[i] + '">' + accounts[i] + '</option';
-          jQuery('#enter_address').append(optionElement);
-        }
-      });
-    });
+  populateAddress: async function () {
+    console.log("In Populate address");
+    const userAccounts = await App.web3.eth.getAccounts();
+    App.currentAccount = userAccounts[0];
+
+    jQuery('#current_account').text(App.currentAccount);
+    console.log("Current account");
+    console.log(App.currentAccount);
+    $(".no-account").css("display", "none");
+    App.getAuthor();
+    if (document.getElementById('explore')) {
+      console.log("in explore page")
+      App.populateBooks(true);
+    }
+    else if (document.getElementById('owner')) {
+      console.log("in owner page")
+      App.populateBooks(false);
+    }
+    return 0;
   },
 
   fetchBook: function (bookId, explore, bookDetails, tokenNum) {
     console.log("started get book", bookId);
-    App.contracts.st.deployed().then(function (instance) {
-      stInstance = instance;
-      return stInstance._books(parseInt(bookId));
-    }).then(function (result, err) {
-      if (result) {
+    App.contracts.st.methods._books(parseInt(bookId)).call((error, result) => {
+      if (error) {
+        console.error(error);
+      } else {
         console.log(result);
         var bookName = bookDetails["book_name"];
         var authName = bookDetails["book_author"];
@@ -157,7 +134,7 @@ App = {
         var image = bookDetails["book_image"]
         var owner = result[0];
         var sale = result[1];
-        var price = result[2].toNumber();
+        var price = result[2];
         if(explore != true) {
           console.log("owner page");
           if(owner==App.currentAccount) {
@@ -170,14 +147,7 @@ App = {
             App.bookToPage(bookId,bookName, authName, pubName, year, sale, price, explore, image, tokenNum);
           }
         }
-        
-      } else {
-        console.log(err)
-        toastr["error"]("Error!");
       }
-    }).catch(function (err) {
-      console.log(err)
-      toastr["error"]("Error!");
     });
   },
 
@@ -204,7 +174,7 @@ App = {
             newElement.find("#book-set").attr("style", "display:none;");
             newElement.find("#buy-price").attr("style", "display:none;");
           } else {
-            newElement.find('.description').text("Owner has set the price to "+ web3.fromWei(price, 'ether')+" ETH");
+            newElement.find('.description').text("Owner has set the price to "+ App.web3.utils.fromWei(price, 'ether')+" ETH");
             newElement.find("#book-set").attr("onclick", "App.buyBook("+bookId+")");
             newElement.find("#book-set").text("Buy");
             newElement.find("#buy-price").attr("id", "buy-price-"+bookId);
@@ -220,7 +190,7 @@ App = {
             newElement.find("#buy-price").attr("id", "set-price-"+bookId);
             newElement.find("#buy-price").attr("placeholder", "Set Price ETH");
           } else {
-            newElement.find('.description').text("This is curently set for sale at "+ web3.fromWei(price, 'ether')+" ETH");
+            newElement.find('.description').text("This is curently set for sale at "+ App.web3.utils.fromWei(price, 'ether')+" ETH");
             newElement.find("#buy-price").attr("style", "display:none;");
             newElement.find("#book-set").attr("onclick", "App.unsetForSale("+bookId+")");
             newElement.find("#book-set").text("Set Not for Sale");
@@ -233,12 +203,11 @@ App = {
 
   populateBooks: function (explore) {
     console.log("started num tokens");
-    App.contracts.st.deployed().then(function (instance) {
-      stInstance = instance;
-      return stInstance._tokenIdCounter();
-    }).then(function (result, err) {
-      if (result) {
-        numTokens = result.toNumber();
+    App.contracts.st.methods._tokenIdCounter().call((error, result) => {
+      if (error) {
+        console.error(error);
+      } else {
+        numTokens = result;
         if(numTokens > 0) {
           getAllData().then(function(data) {
             for(let i = 1; i <= numTokens; i++) {
@@ -248,13 +217,7 @@ App = {
             console.error(error);
           });
         }
-      } else {
-        console.log(err);
-        return nil;
       }
-    }).catch(function (err) {
-      console.log(err);
-      return nil;
     });
   },
 
@@ -262,41 +225,38 @@ App = {
     console.log("started set for sale");
     price = $("#set-price-"+tokenId).val();
     console.log(price)
-    App.contracts.st.deployed().then(function (instance) {
-      stInstance = instance;
-      return stInstance.setForSale(tokenId, true, web3.toWei(price,"ether"), {from: App.currentAccount });
-    }).then(function (result, err) {
-      if (result) {
-        console.log(result);
-        App.updateBooklist();
-        toastr.info('Book is set for Sale', { "iconClass": 'toast-info notification3' });
+    var option = { from: App.currentAccount };
+    App.contracts.st.methods.setForSale(tokenId, true, App.web3.utils.toWei(price, "ether")).send(option, (error, result) => {
+      if (error) {
+        console.error(error);
       } else {
-        console.log(err);
-        return nil;
+        console.log(result);
+        App.waitforCompletion(result, 'Book is set for Sale');   
       }
-    }).catch(function (err) {
-      console.log(err);
-      return nil;
-    });
+    })
   },
+
+  waitforCompletion: async function(txHash, toasterString) {
+    let receipt = null;
+    while (receipt == null) {
+      receipt = await App.web3.eth.getTransactionReceipt(txHash);
+      await new Promise(resolve => setTimeout(resolve, 1000)); 
+    }
+    toastr.info(toasterString, { "iconClass": 'toast-info notification3' });
+    App.updateBooklist();
+  },
+
   unsetForSale: function (tokenId) {
-    console.log("started setfor sale");
-    App.contracts.st.deployed().then(function (instance) {
-      stInstance = instance;
-      return stInstance.setForSale(tokenId, false, web3.toWei(1,"ether"), {from: App.currentAccount });
-    }).then(function (result, err) {
-      if (result) {
-        console.log(result);
-        App.updateBooklist();
-        toastr.info('Book is unset for Sale', { "iconClass": 'toast-info notification3' });
+    console.log("started unset for sale");
+    var option = { from: App.currentAccount };
+    App.contracts.st.methods.setForSale(tokenId, false, App.web3.utils.toWei("1", "ether")).send(option, (error, result) => {
+      if (error) {
+        console.error(error);
       } else {
-        console.log(err);
-        return nil;
+        console.log(result);
+        App.waitforCompletion(result, 'Book is unset for Sale');   
       }
-    }).catch(function (err) {
-      console.log(err);
-      return nil;
-    });
+    })
   },
 
   buyBook: function (tokenId) {
@@ -304,43 +264,36 @@ App = {
     var price = $("#buy-price-"+tokenId).val();
     console.log("price");
     console.log(price);
-
-
-    App.contracts.st.deployed().then(function (instance) {
-      stInstance = instance;
-      return stInstance.buyBook(tokenId, {value: web3.toWei(price, "ether"), from: App.currentAccount });
-    }).then(function (result, err) {
-      if (result) {
-        console.log(result);
-        App.updateBooklist();
-        toastr.info('Book bought Successfully! ID: '+tokenId, { "iconClass": 'toast-info notification3' });
+    var option = { value: App.web3.utils.toWei(price, "ether"), from: App.currentAccount };
+    App.contracts.st.methods.buyBook(tokenId).send(option, (error, result) => {
+      if (error) {
+        console.error(error);
       } else {
-        console.log(err);
-        return nil;
+        console.log(result); 
+        App.waitforCompletion(result, 'Book bought Successfully! ID: '+tokenId);  
       }
-    }).catch(function (err) {
-      console.log(err);
-      return nil;
-    });
+    })
   },
 
   withdrawRoyalty: function () {
     console.log("started withdraw");
-    App.contracts.st.deployed().then(function (instance) {
-      stInstance = instance;
-      return stInstance.withdrawRoyalty({from: App.currentAccount });
-    }).then(function (result, err) {
-      if (result) {
-        console.log(result);
-        returns = result.logs[0].args.royalty.toNumber();
-        toastr.info(web3.fromWei(returns, "ether") +' ETH credited to Author Account', { "iconClass": 'toast-info notification3' });
+    var option = { from: App.currentAccount };
+    App.contracts.st.methods.withdrawRoyalty().send(option, (error, result) => {
+      if (error) {
+        console.error(error);
       } else {
-        console.log(err);
-        return nil;
+        console.log(result);   
       }
-    }).catch(function (err) {
-      console.log(err);
-      return nil;
+    })
+    // Wait for event
+    App.contracts.st.events.RoyaltyWithdrawn({ fromBlock: 0 }, (error, event) => {
+      if (error) {
+        console.error(error);
+        toastr["error"]("Error!");
+      } else {
+        royalty = event.returnValues.royalty;
+        toastr.info(App.web3.utils.fromWei(royalty, "ether") +' ETH credited to Author Account', { "iconClass": 'toast-info notification3' });
+      }
     });
   },
 
@@ -349,23 +302,271 @@ App = {
     address = $("#to-addr-"+tokenId).val();
     console.log(address);
     console.log(tokenId);
-    App.contracts.st.deployed().then(function (instance) {
-      stInstance = instance;
-      return stInstance.transferBook(tokenId, address, {from: App.currentAccount });
-    }).then(function (result, err) {
-      if (result) {
-        console.log(result);
-        App.updateBooklist();
-        toastr.info('Book is transferred to '+address, { "iconClass": 'toast-info notification3' });
+    var option = { from: App.currentAccount };
+    App.contracts.st.methods.transferBook(tokenId, address).send(option, (error, result) => {
+      if (error) {
+        console.error(error);
       } else {
-        console.log(err);
-        return nil;
+        console.log(result);
+        App.waitforCompletion(result, 'Book is transferred to ' + address);   
       }
-    }).catch(function (err) {
-      console.log(err);
-      return nil;
-    });
+    })
   },
+
+  abi: [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "royalty",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "tokenNum",
+          "type": "uint256"
+        }
+      ],
+      "name": "BookCreated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "royalty",
+          "type": "uint256"
+        }
+      ],
+      "name": "RoyaltyWithdrawn",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "Transfer",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "_books",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "bookOwner",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "forSale",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "price",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "_tokenIdCounter",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "transferFrom",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "price",
+          "type": "uint256"
+        }
+      ],
+      "name": "createBook",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        }
+      ],
+      "name": "transferBook",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "forSale",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "price",
+          "type": "uint256"
+        }
+      ],
+      "name": "setForSale",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "buyBook",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function",
+      "payable": true
+    },
+    {
+      "inputs": [],
+      "name": "withdrawRoyalty",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
 
   updateBooklist: function () {
     $( "#book-list" ).load(window.location.href + " #book-list" );
@@ -378,9 +579,6 @@ App = {
       App.populateBooks(false);
     }
   },
-
-
-
 
 
   //Function to show the notification of auction phases
