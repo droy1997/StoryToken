@@ -14,6 +14,7 @@ StoryToken Decentralized application
 * Execute truffle migrate --reset
 * If the above line fails with the following error: import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 we need to npm install ERC721 Through this command : npm install @openzeppelin/contracts
+* Run truffle migrate --reset if it failed the first time.
 
 * Once the smart contract is deployed, navigate to StoryToken-app directory through terminal (../StoryToken-app)
 * Run npm install

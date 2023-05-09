@@ -6,12 +6,15 @@
 # Node artifact files
 node_modules/
 StoryToken-app/src/uploads/*
+StoryToken-contract/build
 !StoryToken-app/src/uploads/.gitkeep
 # Compiled Java class files
 *.class
 
 # Compiled Python bytecode
 *.py[cod]
+
+.env
 
 # Log files
 *.log
